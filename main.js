@@ -6,6 +6,7 @@
      * - 画像
      * - リンク
      * - 単一行コード
+     * - コードブロック
      **/
 
     var writer = (title='Title', texts=[]) => {
@@ -106,6 +107,21 @@
             e.innerText = '';
         }
 
+        var codeBlockStartChars = line.querySelectorAll('span.code-block-start');
+        
+        for (var j = 0; j < codeBlockStartChars.length; j++) {
+            var e = codeBlockStartChars[j];
+            e.innerText = '```' + e.innerText;
+        }
+
+        // text-codeblockだったら`-`を空白(` `)にする
+        var dotMark = '* ';
+        console.log('step num: ' + i);
+        if (lines[i].querySelector('.code-block') !== null )  {
+            console.log('dotmark is replaced by 2 spaces.');
+            dotMark = '  ';
+        }       
+
         // バッククオートを有効化
         var backQuos = line.querySelectorAll('span.backquote');
         for (var j = 0; j < backQuos.length; j++) {
@@ -116,24 +132,37 @@
         var html = line.innerHTML.replace(/<span>/g, '');
         html = html.replace(/<span.+?>/g, '').replace(/<\/span>/g, '');
         html = html.replace(/<br.+?>/g, '');
-        var text = html.replace(/\n/gi, '').replace(/\t/gi, '').trim();
+        // タブはspace2個分に
+        var text = html.replace(/\n/gi, '').replace(/\t/gi, '  ').trim();
 
         text = headline(text);
         text = links(text);
 
         // 箇条書き対応
         var liDot = line.querySelector('.indent-mark');
-        if (liDot !== null) {
+        if (liDot !== null && line.querySelector('span.code-block-start') == null ) {
             // 箇条書きの入れ子構造を取得
             var width = +((liDot.style.width).split('em')[0]);
             var indentLevel = width / indentUnitWidthEm;
-            text = markdownIndent(indentLevel) + '- ' + text;
+
+            text = markdownIndent(indentLevel) + dotMark + text;
         }
         if (liDot === null && text.length > 0 && text[0] !== '#') {
             text += '<br>'
         }
 
         pageTexts.push(text);
+
+        if (lines[i].querySelector('.code-block') !== null) {
+            if (lines.length >= i + 1) {
+                var nextLine = lines[i + 1];
+                if (nextLine.querySelector('.code-block') == null) {
+                    pageTexts.push('```');
+                }
+            } else {
+                pageTexts.push('```');
+            }
+        }
     }
 
     writer(pageTitle, pageTexts);
