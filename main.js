@@ -147,9 +147,6 @@
 
             text = markdownIndent(indentLevel) + dotMark + text;
         }
-        if (liDot === null && text.length > 0 && text[0] !== '#') {
-            text += '<br>'
-        }
 
         pageTexts.push(text);
 
